@@ -21,3 +21,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('store.urls')),
 ]
+
+rlpatterns = [
+    path('admin/', admin.site.urls),
+    path('', include('store.urls')),
+]
