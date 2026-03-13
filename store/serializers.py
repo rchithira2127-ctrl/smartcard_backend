@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import Product
 from django.contrib.auth.models import User
-
+from .models import Order
 
 class ProductSerializer(serializers.ModelSerializer):
     class Meta:
@@ -24,3 +24,8 @@ class UserSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user = User.objects.create_user(**validated_data)
         return user
+
+class OrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        fields = '__all__'   

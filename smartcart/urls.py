@@ -26,3 +26,8 @@ rlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('store.urls')),
 ]
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('', include('store.urls')),
+]

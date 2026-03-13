@@ -6,6 +6,11 @@ from .serializers import UserSerializer
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
+from .models import Order
+from .serializers import OrderSerializer
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView 
+from django.contrib.auth import authenticate
 
 class ProductListCreateView(generics.ListCreateAPIView):
     queryset = Product.objects.all()
@@ -35,3 +40,32 @@ class LoginView(ObtainAuthToken):
             'user_id': token.user_id,
             'username': token.user.username
         })
+
+class OrderListCreateView(generics.ListCreateAPIView):
+    serializer_class = OrderSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Order.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)        
+
+
+class LoginView(APIView):
+
+    def post(self, request):
+        username = request.data.get("username")
+        password = request.data.get("password")
+
+        user = authenticate(username=username, password=password)
+
+        if user:
+            token, created = Token.objects.get_or_create(user=user)
+            return Response({
+                "token": token.key,
+                "user_id": user.id,
+                "username": user.username
+            })
+
+        return Response({"error": "Invalid Credentials"})
