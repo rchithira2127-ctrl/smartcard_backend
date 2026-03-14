@@ -21,9 +21,17 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
 
+from rest_framework.permissions import IsAuthenticated
+
 class CartListCreateView(generics.ListCreateAPIView):
-    queryset = Cart.objects.all()
     serializer_class = CartSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Cart.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -69,3 +77,37 @@ class LoginView(APIView):
             })
 
         return Response({"error": "Invalid Credentials"})
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.generics import ListAPIView
+from .models import Order
+from .serializers import OrderSerializer
+
+class MyOrdersView(ListAPIView):
+    serializer_class = OrderSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Order.objects.filter(user=self.request.user)
+
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from .models import Cart, Order
+
+class CheckoutView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        cart_items = Cart.objects.filter(user=user)
+
+        for item in cart_items:
+            Order.objects.create(
+                user=user,
+                product=item.product,
+                quantity=item.quantity
+            )
+
+        cart_items.delete()
+
+        return Response({"message": "Order placed successfully"})    
